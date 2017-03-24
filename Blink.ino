@@ -7,7 +7,7 @@
 
 
 // assymetric blink intervall for breathing mode
-#define BREATH_IN_US 2000
+#define BREATH_IN_US 4000
 #define BREATH_OUT_US 2000
 
 // assymetric blink intervall for flashing mode
@@ -15,27 +15,25 @@
 #define FLASH_OFF_US 1000
 
 // go sleep in any case after...
-#define AUTO_OFF_AFTER_HOURS 3
+#define AUTO_OFF_AFTER_MIN 180
 
 // go to standby if no brake/movment after...
-#define AUTO_OFF_NO_MOVE_MIN 15
+#define AUTO_OFF_NO_MOVE_MIN 10
 
 // duration of light full on after brake in ms
 #define BRAKE_LIGHT_DURATION_MS 3000
 
 // dimm light for all modes when no brake, int between 0-255
-#define MAX_LIGHT_NO_BRAKE 150
+#define MAX_LIGHT_NO_BRAKE 180
 
 // minimum light when flashing/breathing, int between 0-255
-#define MIN_LIGHT_NO_BRAKE 0
+#define MIN_LIGHT_NO_BRAKE 90
 
+// PINs
 #define LED_PIN 0
-
-
-#define BUTTON_PIN 1
-
-
-#define BRAKE_PIN 2
+#define BRAKE_PIN 1
+// this is the interrupt pin to wake up...
+#define BUTTON_PIN 2
 
 
 /*
@@ -44,10 +42,14 @@
  *  - modes: static, flashing, breathing
  *  - modes into eeprom?
  *  - auto on, needs second interrupt pin?
+ *  - hold button long for on/off
+ *  - config
+ *    - brightness
+ *    - blink mode
+ *    - timeouts?
  */
 
 byte light_mode = 0;
-
 
 
 bool brake() {
