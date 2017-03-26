@@ -80,18 +80,31 @@ void go_sleep() {
   // TODO fade out led here
   analogWrite(LED_PIN, 0);
   delay(2000);
-  set_sleep_mode (SLEEP_MODE_PWR_DOWN); 
-  GIMSK = _BV(INT0);      // enable INT0 
-  sleep_enable();
-  sleep_cpu ();
-  sleep_disable();
+  analogWrite(LED_PIN, 255);
+  delay(100);
+  analogWrite(LED_PIN, 0);
+
+  GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
+  PCMSK |= _BV(PCINT0);                   // Use PB3 as interrupt pin
+  ADCSRA &= ~_BV(ADEN);                   // ADC off
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);    // replaces above statement
+
+  sleep_enable();                         // Sets the Sleep Enable bit in the MCUCR Register (SE BIT)
+  sei();                                  // Enable interrupts
+  sleep_cpu();                            // sleep
+
+  cli();                                  // Disable interrupts
+  PCMSK &= ~_BV(PCINT0);                  // Turn off PB3 as interrupt pin
+  sleep_disable();                        // Clear SE bit
+  ADCSRA |= _BV(ADEN);                    // ADC on
+
+  sei();                                  // Enable interrupts
+} 
+
+ISR(PCINT0_vect) {
+    // This is called when the interrupt occurs, but I don't need to do anything in it
 }
 
-//volatile int value = 0;
-//ISR(PCINT0_vect)
-//{
-//    value += 1;             // Increment volatile variable
-//}
 
 
 void setup() {
@@ -99,12 +112,9 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(BRAKE_PIN, INPUT_PULLUP);
 
-  attachInterrupt(0, Int0ISR, LOW);
+    // attachInterrupt(0, pin2_isr, LOW);
 }
 
-void Int0ISR() { 
-  GIMSK = 0;  // disable INT0         
-}
 
 void loop() {
   byte light_val;
