@@ -154,4 +154,8 @@ void loop() {
 
     if (digitalRead(BUTTON_PIN) == LOW)
         go_sleep();
+
+    // auto off
+    if (millis() > AUTO_OFF_AFTER_MIN * 60UL * 1000UL)
+        go_sleep();
 }
