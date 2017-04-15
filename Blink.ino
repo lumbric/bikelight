@@ -7,12 +7,12 @@
 
 
 // assymetric blink intervall for breathing mode
-#define BREATH_IN_MS 4800
-#define BREATH_OUT_MS 2000
+#define BREATH_IN_MS 1000
+#define BREATH_OUT_MS 1800
 
 // assymetric blink intervall for flashing mode
-#define FLASH_ON_US 1000
-#define FLASH_OFF_US 1000
+#define FLASH_ON_MS 1000
+#define FLASH_OFF_MS 1000
 
 // go sleep in any case after...
 #define AUTO_OFF_AFTER_MIN 180
@@ -107,9 +107,21 @@ ISR(PCINT0_vect) {
 }
 
 
+enum Blinkmodes {
+    constant,
+    flash,
+    breath,
+    flash_twice,
+};
+
+
+
 class Led {
     public:
-        Led() {};
+        Led() : blinkmode(breath) {
+            start_ms = millis();
+        };
+
         void update() {
             unsigned long t = millis();
             
@@ -130,11 +142,19 @@ class Led {
 
             analogWrite(LED_PIN, brightness);
         };
+
+        setBlinkMode(Blinkmodes new_mode) {
+            blinkmode = new_mode;
+            start_ms = millis();;
+        }
+
+
     private:
         byte brightness;
         unsigned long start_ms;  // start of period
-};
+        Blinkmodes blinkmode;
 
+};
 
 Led led;
 
@@ -148,6 +168,8 @@ void setup() {
 
 
 void loop() {
+    // Note: if this loop gets too slow, we need interrupts for buttons
+
     // bool just_woke_up = millis() < 1000;
     led.update();
     brake();
