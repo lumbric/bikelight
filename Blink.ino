@@ -24,7 +24,7 @@
 #define BRAKE_LIGHT_DURATION_MS 3000
 
 // dimm light for all modes when no brake, int between 0-255
-#define MAX_LIGHT_NO_BRAKE 255
+#define MAX_LIGHT_NO_BRAKE 205
 
 // minimum light when flashing/breathing, int between 0-255
 #define MIN_LIGHT_NO_BRAKE 30
@@ -52,15 +52,6 @@
 byte light_mode = 0;
 
 
-bool brake() {
-    bool brake_on = false;
-    while (digitalRead(BRAKE_PIN) == LOW) {
-        analogWrite(LED_PIN, 255);
-        delay(BRAKE_LIGHT_DURATION_MS);
-        brake_on = true;
-    }
-    return brake_on;
-}
 
 
 void go_sleep() {
@@ -109,12 +100,26 @@ enum Blinkmodes {
 
 class Led {
     public:
-        Led() : blinkmode(breath) {
+        Led() :
+            blinkmode(breath),
+            brake_start_ms(0)
+        {
             start_ms = millis();
         };
 
         void update() {
             unsigned long t = millis();
+
+            if (brake_start_ms) {
+                if (brake_start_ms + BRAKE_LIGHT_DURATION_MS > t) {
+                    // brake light already on
+                    return;
+                }
+                else {
+                    brake_start_ms = 0;
+                    start_ms = t - BREATH_IN_MS + 1;
+                }
+            }
             
             if (t > start_ms + BREATH_IN_MS + BREATH_OUT_MS) {
                 // period over, new start
@@ -134,6 +139,11 @@ class Led {
             analogWrite(LED_PIN, brightness);
         };
 
+        void brake() {
+            brake_start_ms = millis();
+            analogWrite(LED_PIN, 255);
+        };
+
         setBlinkMode(Blinkmodes new_mode) {
             blinkmode = new_mode;
             start_ms = millis();;
@@ -142,7 +152,8 @@ class Led {
 
     private:
         byte brightness;
-        unsigned long start_ms;  // start of period
+        unsigned long start_ms;       // start of period
+        unsigned long brake_start_ms; // start of brake light
         Blinkmodes blinkmode;
 
 };
@@ -159,11 +170,15 @@ void setup() {
 void loop() {
     // Note: if this loop gets too slow, we need interrupts for buttons
 
-    // bool just_woke_up = millis() < 1000;
-    led.update();
-    brake();
+    bool just_woke_up = millis() < 1000;
 
-    if (digitalRead(BUTTON_PIN) == LOW)
+    led.update();
+
+    if(!just_woke_up && digitalRead(BRAKE_PIN) == LOW) {
+        led.brake();
+    }
+
+    if (!just_woke_up && digitalRead(BUTTON_PIN) == LOW)
         go_sleep();
 
     // auto off
