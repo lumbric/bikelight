@@ -57,7 +57,7 @@ byte light_mode = 0;
 void go_sleep() {
     // TODO fade out led here
 
-    delay(1000);
+    delay(100);
     analogWrite(LED_PIN, 0);
     delay(100);
     analogWrite(LED_PIN, 255);
@@ -79,8 +79,6 @@ void go_sleep() {
 
     // Upon waking up, sketch continues from this point.
     sleep_disable();
-
-    delay(1000);
 } 
 
 
@@ -160,17 +158,22 @@ class Led {
 
 Led led;
 
+unsigned long alive_since_ms = 0; 
+
 void setup() {
     pinMode(LED_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(BRAKE_PIN, INPUT_PULLUP);
+
+    alive_since_ms = millis();
 }
 
 
 void loop() {
     // Note: if this loop gets too slow, we need interrupts for buttons
 
-    bool just_woke_up = millis() < 1000;
+    // necessary for button debouncing
+    bool just_woke_up = millis() - alive_since_ms < 1000;
 
     led.update();
 
@@ -178,10 +181,10 @@ void loop() {
         led.brake();
     }
 
-    if (!just_woke_up && digitalRead(BUTTON_PIN) == LOW)
+    if (!just_woke_up && (digitalRead(BUTTON_PIN) == LOW) ||
+            (millis() - alive_since_ms > AUTO_OFF_AFTER_MIN * 60UL * 1000UL)) {
         go_sleep();
-
-    // auto off
-    if (millis() > AUTO_OFF_AFTER_MIN * 60UL * 1000UL)
-        go_sleep();
+        alive_since_ms = millis();
+        // TODO make led fade in
+    }
 }
