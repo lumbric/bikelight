@@ -63,47 +63,38 @@ bool brake() {
 }
 
 
-void run_light() {
-    switch (light_mode) {
-    case 0:
-        break;
-    }
-}
-
-
-void switch_mode(int mode) {
-    light_mode = mode;
-}
-
-
 void go_sleep() {
     // TODO fade out led here
+
+    delay(1000);
     analogWrite(LED_PIN, 0);
-    delay(2000);
+    delay(100);
     analogWrite(LED_PIN, 255);
     delay(100);
     analogWrite(LED_PIN, 0);
 
-    GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
-    PCMSK |= _BV(PCINT0);                   // Use PB3 as interrupt pin
-    ADCSRA &= ~_BV(ADEN);                   // ADC off
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);    // replaces above statement
+    attachInterrupt(0, interrupt_handler, LOW);
+    delay(100);
+    
+    // Choose our preferred sleep mode:
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-    sleep_enable();                         // Sets the Sleep Enable bit in the MCUCR Register (SE BIT)
-    sei();                                  // Enable interrupts
-    sleep_cpu();                            // sleep
+    // Set sleep enable (SE) bit:
+    sleep_enable();
 
-    cli();                                  // Disable interrupts
-    PCMSK &= ~_BV(PCINT0);                  // Turn off PB3 as interrupt pin
-    sleep_disable();                        // Clear SE bit
-    ADCSRA |= _BV(ADEN);                    // ADC on
+    analogWrite(LED_PIN, 0);
+    // Put the device to sleep:
+    sleep_mode();
 
-    sei();                                  // Enable interrupts
+    // Upon waking up, sketch continues from this point.
+    sleep_disable();
+
+    delay(1000);
 } 
 
 
-ISR(PCINT0_vect) {
-    // This is called when the interrupt occurs, but I don't need to do anything in it
+void interrupt_handler() {
+    detachInterrupt(0);
 }
 
 
@@ -162,8 +153,6 @@ void setup() {
     pinMode(LED_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(BRAKE_PIN, INPUT_PULLUP);
-
-    // attachInterrupt(0, pin2_isr, LOW);
 }
 
 
