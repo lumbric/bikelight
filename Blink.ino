@@ -24,7 +24,7 @@
 #define BRAKE_LIGHT_DURATION_MS 3000
 
 // dimm light for all modes when no brake, int between 0-255
-#define MAX_LIGHT_NO_BRAKE 205
+#define MAX_LIGHT_NO_BRAKE 200
 
 // minimum light when flashing/breathing, int between 0-255
 #define MIN_LIGHT_NO_BRAKE 30
@@ -57,15 +57,11 @@ byte light_mode = 0;
 void go_sleep() {
     // TODO fade out led here
 
-    delay(100);
     analogWrite(LED_PIN, 0);
-    delay(100);
-    analogWrite(LED_PIN, 255);
-    delay(100);
-    analogWrite(LED_PIN, 0);
+    delay(1000);  // no idea why if/why necessary
 
     attachInterrupt(0, interrupt_handler, LOW);
-    delay(100);
+    delay(100);  // no idea why if/why necessary
     
     // Choose our preferred sleep mode:
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -87,6 +83,7 @@ void interrupt_handler() {
 }
 
 
+// TODO not implemented yet
 enum Blinkmodes {
     constant,
     flash,
@@ -115,7 +112,7 @@ class Led {
                 }
                 else {
                     brake_start_ms = 0;
-                    start_ms = t - BREATH_IN_MS + 1;
+                    start_ms = t - BREATH_IN_MS;
                 }
             }
             
@@ -159,13 +156,15 @@ class Led {
 Led led;
 
 unsigned long alive_since_ms = 0; 
+unsigned long last_movement_ms = 0; 
+
 
 void setup() {
     pinMode(LED_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(BRAKE_PIN, INPUT_PULLUP);
 
-    alive_since_ms = millis();
+    last_movement_ms = alive_since_ms = millis();
 }
 
 
@@ -178,11 +177,13 @@ void loop() {
     led.update();
 
     if(!just_woke_up && digitalRead(BRAKE_PIN) == LOW) {
+        last_movement_ms = millis();
         led.brake();
     }
 
     if (!just_woke_up && (digitalRead(BUTTON_PIN) == LOW) ||
-            (millis() - alive_since_ms > AUTO_OFF_AFTER_MIN * 60UL * 1000UL)) {
+            (millis() - alive_since_ms > AUTO_OFF_AFTER_MIN * 60UL * 1000UL) ||
+            (millis() - last_movement_ms > AUTO_OFF_NO_MOVE_MIN * 60UL * 1000UL)) {
         go_sleep();
         alive_since_ms = millis();
         // TODO make led fade in
