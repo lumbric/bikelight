@@ -49,6 +49,9 @@
  *    - timeouts?
  */
 
+unsigned long alive_since_ms = 0;
+unsigned long last_movement_ms = 0;
+
 
 void go_sleep() {
     // TODO fade out led here
@@ -68,6 +71,9 @@ void go_sleep() {
 
     // Upon waking up, sketch continues from this point.
     sleep_disable();
+
+    // back alive!
+    last_movement_ms = alive_since_ms = millis();
 } 
 
 
@@ -148,9 +154,6 @@ class Led {
 
 Led led;
 
-unsigned long alive_since_ms = 0; 
-unsigned long last_movement_ms = 0; 
-
 
 void setup() {
     pinMode(LED_PIN, OUTPUT);
@@ -177,11 +180,11 @@ void loop() {
         led.brake();
     }
 
-    if (!just_woke_up && (digitalRead(BUTTON_PIN) == LOW) ||
+    if (!just_woke_up &&
+            (digitalRead(BUTTON_PIN) == LOW) ||
             (millis() - alive_since_ms > AUTO_OFF_AFTER_MIN * 60UL * 1000UL) ||
             (millis() - last_movement_ms > AUTO_OFF_NO_MOVE_MIN * 60UL * 1000UL)) {
         go_sleep();
-        alive_since_ms = millis();
         // TODO make led fade in
     }
 }
