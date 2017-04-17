@@ -49,19 +49,11 @@
  *    - timeouts?
  */
 
-byte light_mode = 0;
-
-
-
 
 void go_sleep() {
     // TODO fade out led here
 
     analogWrite(LED_PIN, 0);
-    delay(1000);  // no idea why if/why necessary
-
-    attachInterrupt(0, interrupt_handler, LOW);
-    delay(100);  // no idea why if/why necessary
     
     // Choose our preferred sleep mode:
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -69,8 +61,9 @@ void go_sleep() {
     // Set sleep enable (SE) bit:
     sleep_enable();
 
-    analogWrite(LED_PIN, 0);
-    // Put the device to sleep:
+    delay(1000);  // no idea why if/why necessary
+
+    // Put the device to sleep...
     sleep_mode();
 
     // Upon waking up, sketch continues from this point.
@@ -79,7 +72,6 @@ void go_sleep() {
 
 
 void interrupt_handler() {
-    detachInterrupt(0);
 }
 
 
@@ -112,6 +104,7 @@ class Led {
                 }
                 else {
                     brake_start_ms = 0;
+                    // TODO for some reason LED blinks here
                     start_ms = t - BREATH_IN_MS;
                 }
             }
@@ -165,6 +158,9 @@ void setup() {
     pinMode(BRAKE_PIN, INPUT_PULLUP);
 
     last_movement_ms = alive_since_ms = millis();
+
+    // for waking up after sleep...
+    attachInterrupt(0, interrupt_handler, LOW);
 }
 
 
