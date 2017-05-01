@@ -138,7 +138,7 @@ class Led {
             analogWrite(LED_PIN, 255);
         };
 
-        setBlinkMode(Blinkmodes new_mode) {
+        void setBlinkMode(Blinkmodes new_mode) {
             blinkmode = new_mode;
             start_ms = millis();;
         }
