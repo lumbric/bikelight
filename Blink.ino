@@ -7,8 +7,8 @@
 
 
 // assymetric blink intervall for breathing mode
-#define BREATH_IN_MS 1000
-#define BREATH_OUT_MS 1800
+#define BREATH_IN_MS 800
+#define BREATH_OUT_MS 1600
 
 // assymetric blink intervall for flashing mode
 #define FLASH_ON_MS 1000
@@ -24,10 +24,10 @@
 #define BRAKE_LIGHT_DURATION_MS 3000
 
 // dimm light for all modes when no brake, int between 0-255
-#define MAX_LIGHT_NO_BRAKE 200
+#define MAX_LIGHT_NO_BRAKE 90
 
 // minimum light when flashing/breathing, int between 0-255
-#define MIN_LIGHT_NO_BRAKE 30
+#define MIN_LIGHT_NO_BRAKE 10
 
 // PINs
 #define LED_PIN 0
