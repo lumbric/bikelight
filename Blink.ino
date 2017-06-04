@@ -53,34 +53,6 @@ unsigned long alive_since_ms = 0;
 unsigned long last_movement_ms = 0;
 
 
-void go_sleep() {
-    // TODO fade out led here
-
-    analogWrite(LED_PIN, 0);
-    
-    // Choose our preferred sleep mode:
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-
-    // Set sleep enable (SE) bit:
-    sleep_enable();
-
-    delay(1000);  // no idea why if/why necessary
-
-    // Put the device to sleep...
-    sleep_mode();
-
-    // Upon waking up, sketch continues from this point.
-    sleep_disable();
-
-    // back alive!
-    last_movement_ms = alive_since_ms = millis();
-} 
-
-
-void interrupt_handler() {
-}
-
-
 // TODO not implemented yet
 enum Blinkmodes {
     constant,
@@ -99,6 +71,10 @@ class Led {
         {
             start_ms = millis();
         };
+
+        void write(byte brightness) {
+            analogWrite(LED_PIN, 255 - brightness);
+        }
 
         void update() {
             unsigned long t = millis();
@@ -130,12 +106,12 @@ class Led {
                     + MAX_LIGHT_NO_BRAKE; 
             }
 
-            analogWrite(LED_PIN, brightness);
+            write(brightness);
         };
 
         void brake() {
             brake_start_ms = millis();
-            analogWrite(LED_PIN, 255);
+            write(255);
         };
 
         void setBlinkMode(Blinkmodes new_mode) {
@@ -153,6 +129,34 @@ class Led {
 };
 
 Led led;
+
+
+void go_sleep() {
+    // TODO fade out led here
+
+    led.write(0);
+    
+    // Choose our preferred sleep mode:
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
+    // Set sleep enable (SE) bit:
+    sleep_enable();
+
+    delay(1000);  // no idea why if/why necessary
+
+    // Put the device to sleep...
+    sleep_mode();
+
+    // Upon waking up, sketch continues from this point.
+    sleep_disable();
+
+    // back alive!
+    last_movement_ms = alive_since_ms = millis();
+} 
+
+
+void interrupt_handler() {
+}
 
 
 void setup() {
