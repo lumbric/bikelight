@@ -162,7 +162,7 @@ void interrupt_handler() {
 void setup() {
     pinMode(LED_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT_PULLUP);
-    pinMode(BRAKE_PIN, INPUT_PULLUP);
+    //pinMode(BRAKE_PIN, INPUT_PULLUP);
 
     last_movement_ms = alive_since_ms = millis();
 
@@ -179,15 +179,14 @@ void loop() {
 
     led.update();
 
-    if(!just_woke_up && digitalRead(BRAKE_PIN) == LOW) {
-        last_movement_ms = millis();
-        led.brake();
-    }
+    //if(!just_woke_up && digitalRead(BRAKE_PIN) == LOW) {
+    //    last_movement_ms = millis();
+    //    led.brake();
+    //}
 
     if (!just_woke_up &&
             (digitalRead(BUTTON_PIN) == LOW) ||
-            (millis() - alive_since_ms > AUTO_OFF_AFTER_MIN * 60UL * 1000UL) ||
-            (millis() - last_movement_ms > AUTO_OFF_NO_MOVE_MIN * 60UL * 1000UL)) {
+            (millis() - alive_since_ms > AUTO_OFF_AFTER_MIN * 60UL * 1000UL)) {
         go_sleep();
         // TODO make led fade in
     }
